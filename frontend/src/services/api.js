@@ -107,6 +107,19 @@ export const reservasApi = {
     });
   },
 
+  encerrar(id) {
+    return request(`/reservas/${id}/encerrar`, {
+      method: "PATCH",
+    });
+  },
+
+  estender(id, horaFim) {
+    return request(`/reservas/${id}/estender`, {
+      method: "PATCH",
+      body: JSON.stringify({ hora_fim: horaFim }),
+    });
+  },
+
   aplicarPrioridade(payload) {
     return request("/reservas/prioridade", {
       method: "POST",

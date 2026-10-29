@@ -9,8 +9,14 @@ CREATE TABLE IF NOT EXISTS reservas (
     hora_inicio TIME NOT NULL,
     hora_fim TIME NOT NULL,
 
+    -- Fim original, preenchido quando a reunião é encerrada antes ou estendida
+    hora_fim_prevista TIME NULL,
+
     responsavel VARCHAR(100) NOT NULL,
     setor VARCHAR(100) NOT NULL,
+
+    -- Colaborador da GREEN que fez a marcação
+    marcado_por VARCHAR(100) NULL,
 
     empresa ENUM(
         'GREEN',

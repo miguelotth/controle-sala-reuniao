@@ -1,0 +1,26 @@
+.gp-ajuste {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  border-radius: var(--gp-radius-pill);
+  padding: 2px 8px 2px 6px;
+}
+
+.gp-ajuste em {
+  font-style: normal;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+.gp-ajuste-estendida {
+  color: var(--accent-strong);
+  background: var(--gp-status-agendada-bg);
+}
+
+.gp-ajuste-encerrada {
+  color: var(--text-secondary);
+  background: var(--gp-status-cancelada-bg);
+}

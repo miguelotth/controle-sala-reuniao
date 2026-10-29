@@ -101,3 +101,12 @@
   align-items: center;
   margin-top: 12px;
 }
+
+/* Horário na tabela, com a etiqueta de estendida/encerrada antes logo abaixo */
+.gp-table-horario {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  font-variant-numeric: tabular-nums;
+}

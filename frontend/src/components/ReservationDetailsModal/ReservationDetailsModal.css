@@ -107,3 +107,55 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ENCERRAR / ESTENDER */
+
+/* Linha do horário: a etiqueta de estendida/encerrada quebra para baixo se faltar espaço */
+.gp-details-row:has(.gp-ajuste) {
+  flex-wrap: wrap;
+
+  align-items: center;
+}
+
+
+.gp-details-extend-atalhos {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 6px;
+}
+
+
+.gp-details-extend-atalhos .is-active {
+  border-color: var(--accent);
+
+  color: var(--accent-strong);
+}
+
+
+.gp-details-extend {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+
+.gp-details-extend-hint {
+  font-size: 0.8rem;
+
+  color: var(--text-secondary);
+}
+
+
+.gp-details-extend-actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 8px;
+}

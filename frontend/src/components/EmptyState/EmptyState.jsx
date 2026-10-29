@@ -3,11 +3,6 @@ import "./EmptyState.css";
 export default function EmptyState({ icon: Icon, title, description, action }) {
   return (
     <div className="gp-empty">
-      <div className="gp-empty-pattern" aria-hidden="true">
-        <span>green</span>
-        <span>green</span>
-        <span>green</span>
-      </div>
       {Icon && (
         <div className="gp-empty-icon">
           <Icon size={26} strokeWidth={1.6} />

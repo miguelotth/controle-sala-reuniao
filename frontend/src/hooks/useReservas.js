@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { reservasApi } from "../services/api";
 
-/**
- * Busca a lista de reservas de acordo com filtros, expondo estado de
- * carregamento/erro e uma função `refetch` para atualizar após mutações.
- */
 export function useReservas(filters = {}) {
   const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);

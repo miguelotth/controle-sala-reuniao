@@ -3,7 +3,6 @@ import { X } from "lucide-react";
 import "./Modal.css";
 
 /**
- * Modal base reutilizado por ReservationModal, ConfirmModal e ConflictModal.
  * Em telas pequenas se comporta como drawer (entra pela base da tela).
  */
 export default function Modal({ open, onClose, children, width = 520, title }) {

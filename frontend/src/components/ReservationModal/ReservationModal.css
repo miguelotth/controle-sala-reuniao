@@ -88,3 +88,62 @@
     grid-template-columns: 1fr;
   }
 }
+
+.gp-resform-duracoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.gp-resform-duracao {
+  border: 1px solid var(--border-strong);
+}
+.gp-resform-duracao.is-active {
+  background: var(--gp-empresa-green-bg);
+  color: var(--accent-strong);
+}
+.gp-field em.gp-field-optional {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Aviso imediato de disponibilidade (horário passado / ocupado / livre) */
+.gp-resform-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border-radius: var(--gp-radius-sm);
+  padding: 10px 12px;
+  font-size: 0.83rem;
+  line-height: 1.4;
+}
+.gp-resform-check svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.gp-resform-check strong {
+  font-weight: 700;
+}
+.gp-resform-check p {
+  margin-top: 2px;
+  color: var(--text-secondary);
+}
+.gp-resform-check ul {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.gp-resform-check-ok {
+  background: var(--gp-status-agendada-bg);
+  color: var(--accent-strong);
+}
+.gp-resform-check-aviso {
+  background: var(--gp-status-standby-bg);
+  color: var(--gp-status-standby);
+}
+.gp-resform-check-erro {
+  background: var(--gp-status-conflito-bg);
+  color: var(--gp-status-conflito);
+}

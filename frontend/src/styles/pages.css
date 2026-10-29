@@ -20,6 +20,31 @@
   flex-wrap: wrap;
 }
 
+/* Abas em pílula (Agenda e Dashboard) */
+.gp-tabs {
+  display: inline-flex;
+  background: var(--bg-surface-alt);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--gp-radius-pill);
+  padding: 3px;
+  gap: 2px;
+}
+.gp-tab {
+  border: none;
+  background: transparent;
+  padding: 7px 16px;
+  border-radius: var(--gp-radius-pill);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.gp-tab.is-active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  box-shadow: var(--gp-shadow-sm);
+}
+
 .gp-rescard-list {
   display: flex;
   flex-direction: column;

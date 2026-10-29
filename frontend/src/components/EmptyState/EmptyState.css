@@ -12,23 +12,6 @@
   border: 1px dashed var(--border-strong);
 }
 
-.gp-empty-pattern {
-  position: absolute;
-  top: 0;
-  right: -10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-family: var(--gp-font-display);
-  font-weight: 800;
-  font-size: 1.6rem;
-  color: var(--accent);
-  opacity: 0.06;
-  text-transform: lowercase;
-  pointer-events: none;
-  white-space: nowrap;
-}
-
 .gp-empty-icon {
   width: 52px;
   height: 52px;

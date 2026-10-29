@@ -28,7 +28,8 @@
 }
 
 .gp-logo-sub {
-  margin-top: 2px;
+  /* espaço para a perna do "g" não encostar em "PAPERLESS" */
+  margin-top: 7px;
   font-size: 0.56rem;
   font-weight: 700;
   letter-spacing: 0.28em;

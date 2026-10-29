@@ -4,7 +4,10 @@ import { EmpresaBadge, StatusBadge } from "../../components/StatusBadge/StatusBa
 import { formatTime, timeToMinutes } from "../../utils/date";
 import { STATUS } from "../../utils/status";
 
-const ROW_HEIGHT = 72; // px por hora
+const ROW_HEIGHT = 96; // px por hora
+
+// Abaixo disso o bloco mostra só uma linha (horário, título e etiquetas)
+const MIN_MINUTOS_DETALHADO = 45;
 
 function layoutDay(reservas) {
   const sorted = [...reservas].sort(
@@ -92,31 +95,42 @@ export default function AgendaDay({ reservas, horaInicial, horaFinal, isToday, n
           const start = Math.max(dayStart, timeToMinutes(reserva.hora_inicio));
           const end = Math.min(dayEnd, timeToMinutes(reserva.hora_fim));
           const top = (start - dayStart) * pxPerMin;
-          const height = Math.max(30, (end - start) * pxPerMin);
+          // 2px de folga para blocos encostados não se sobreporem
+          const height = Math.max(36, (end - start) * pxPerMin - 2);
           const width = `calc(${100 / colCount}% - 6px)`;
           const left = `calc(${(100 / colCount) * col}% + 3px)`;
+          const compacto = end - start < MIN_MINUTOS_DETALHADO;
 
           return (
             <button
               key={reserva.id}
-              className={`gp-timeline-block gp-timeline-block-${reserva.status.toLowerCase()}`}
+              className={`gp-timeline-block gp-timeline-block-${reserva.status.toLowerCase()} ${
+                compacto ? "is-compact" : ""
+              }`}
               style={{ top, height, width, left }}
               onClick={() => onSelect(reserva)}
+              title={`${formatTime(reserva.hora_inicio)} – ${formatTime(reserva.hora_fim)} · ${
+                reserva.motivo || reserva.responsavel
+              }`}
               type="button"
             >
-              <div className="gp-timeline-block-time">
-                {formatTime(reserva.hora_inicio)} – {formatTime(reserva.hora_fim)}
+              <div className="gp-timeline-block-head">
+                <span className="gp-timeline-block-time">
+                  {formatTime(reserva.hora_inicio)} – {formatTime(reserva.hora_fim)}
+                </span>
+                <span className="gp-timeline-block-title">
+                  {reserva.motivo || reserva.responsavel}
+                </span>
+                <span className="gp-timeline-block-tags">
+                  <EmpresaBadge empresa={reserva.empresa} size="sm" />
+                  <StatusBadge status={reserva.status} size="sm" />
+                </span>
               </div>
-              <div className="gp-timeline-block-title">
-                {reserva.motivo || reserva.responsavel}
-              </div>
-              <div className="gp-timeline-block-meta">
-                {reserva.responsavel} · {reserva.setor}
-              </div>
-              <div className="gp-timeline-block-tags">
-                <EmpresaBadge empresa={reserva.empresa} size="sm" />
-                <StatusBadge status={reserva.status} size="sm" />
-              </div>
+              {!compacto && (
+                <div className="gp-timeline-block-meta">
+                  {reserva.responsavel} · {reserva.setor}
+                </div>
+              )}
             </button>
           );
         })}

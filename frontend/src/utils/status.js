@@ -1,6 +1,3 @@
-// Configuração centralizada de status e empresas das reservas.
-// Mantém rótulos, cores (via CSS vars) e ícones consistentes em toda a aplicação.
-
 import {
   CalendarCheck,
   Clock3,

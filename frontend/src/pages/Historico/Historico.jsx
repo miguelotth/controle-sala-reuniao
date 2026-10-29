@@ -6,12 +6,13 @@ import EmptyState from "../../components/EmptyState/EmptyState";
 import ReservationDetailsModal from "../../components/ReservationDetailsModal/ReservationDetailsModal";
 import { useReservas } from "../../hooks/useReservas";
 import { useIsMobile } from "../../hooks/useMediaQuery";
-import { formatDateBR, formatTime, isReservationPast } from "../../utils/date";
+import AjusteHorario from "../../components/AjusteHorario/AjusteHorario";
+import { formatDateBR, formatTime, isReservationPast, ajusteDeHorario } from "../../utils/date";
 import { STATUS } from "../../utils/status";
 import "../Reservas/Reservas.css";
 
 export default function Historico({ onOpenMobileMenu }) {
-  const [filters, setFilters] = useState({ data: "", tipo: "" }); // tipo: "" | PASSADAS | CANCELADA | CONFLITO
+  const [filters, setFilters] = useState({ data: "", tipo: "" }); // tipo: "" | PASSADAS | ESTENDIDAS | CANCELADA | CONFLITO
   const [detailsReserva, setDetailsReserva] = useState(null);
   const [now, setNow] = useState(() => new Date());
   const isMobile = useIsMobile();
@@ -43,6 +44,10 @@ export default function Historico({ onOpenMobileMenu }) {
       return base.filter((r) => isReservationPast(r.data, r.hora_fim, now));
     }
 
+    if (filters.tipo === "ESTENDIDAS") {
+      return base.filter((r) => ajusteDeHorario(r)?.tipo === "estendida");
+    }
+
     return base.filter((r) => r.status === filters.tipo);
   }, [reservas, filters.tipo, now]);
 
@@ -66,6 +71,7 @@ export default function Historico({ onOpenMobileMenu }) {
         >
           <option value="">Todo o histórico</option>
           <option value="PASSADAS">Somente passadas</option>
+          <option value="ESTENDIDAS">Somente com horário estendido</option>
           <option value="CANCELADA">Somente canceladas</option>
           <option value="CONFLITO">Somente conflitos</option>
         </select>
@@ -101,9 +107,11 @@ export default function Historico({ onOpenMobileMenu }) {
               <p className="gp-reservas-card-title">{r.motivo || r.responsavel}</p>
               <p className="gp-reservas-card-meta">
                 {r.responsavel} · {r.setor}
+                {r.marcado_por && ` · marcado por ${r.marcado_por}`}
               </p>
               <div className="gp-reservas-card-bottom">
                 <EmpresaBadge empresa={r.empresa} size="sm" />
+                <AjusteHorario reserva={r} />
               </div>
             </button>
           ))}
@@ -117,6 +125,7 @@ export default function Historico({ onOpenMobileMenu }) {
                 <th>Horário</th>
                 <th>Responsável</th>
                 <th>Setor</th>
+                <th>Marcado por</th>
                 <th>Empresa</th>
                 <th>Motivo</th>
                 <th>Status</th>
@@ -127,10 +136,14 @@ export default function Historico({ onOpenMobileMenu }) {
                 <tr key={r.id} onClick={() => setDetailsReserva(r)} style={{ cursor: "pointer" }}>
                   <td>{formatDateBR(r.data)}</td>
                   <td>
-                    {formatTime(r.hora_inicio)}–{formatTime(r.hora_fim)}
+                    <div className="gp-table-horario">
+                      {formatTime(r.hora_inicio)}–{formatTime(r.hora_fim)}
+                      <AjusteHorario reserva={r} />
+                    </div>
                   </td>
                   <td>{r.responsavel}</td>
                   <td>{r.setor}</td>
+                  <td>{r.marcado_por || "—"}</td>
                   <td>
                     <EmpresaBadge empresa={r.empresa} size="sm" />
                   </td>

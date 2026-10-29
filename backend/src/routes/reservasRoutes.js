@@ -17,6 +17,10 @@ router.patch("/:id/standby", reservasController.pausarReserva);
 
 router.patch("/:id/retomar", reservasController.retomarReserva);
 
+router.patch("/:id/encerrar", reservasController.encerrarReserva);
+
+router.patch("/:id/estender", reservasController.estenderReserva);
+
 router.patch("/:id/cancelar", reservasController.cancelarReserva);
 
 module.exports = router;

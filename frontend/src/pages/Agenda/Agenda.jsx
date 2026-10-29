@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Plus, CalendarDays } from "lucide-react";
 import Header from "../../components/Header/Header";
 import ReservationModal from "../../components/ReservationModal/ReservationModal";
 import ConflictModal from "../../components/ConflictModal/ConflictModal";
+import ManagedReservationDetails from "../../components/ReservationDetailsModal/ManagedReservationDetails";
 import AgendaDay from "./AgendaDay";
 import AgendaWeek from "./AgendaWeek";
 import { useReservas } from "../../hooks/useReservas";
@@ -32,6 +33,7 @@ function useNowMinutes() {
 
 export default function Agenda({ onOpenMobileMenu }) {
   const [view, setView] = useState("hoje"); // "hoje" | "semana"
+  const [detailsReserva, setDetailsReserva] = useState(null);
   const [selectedDate, setSelectedDate] = useState(todayISO());
   const [weekAnchor, setWeekAnchor] = useState(todayISO());
   const { settings } = useSettings();
@@ -145,7 +147,7 @@ export default function Agenda({ onOpenMobileMenu }) {
                 horaFinal={settings.horaFinal}
                 isToday={isTodayISO(selectedDate)}
                 nowMinutes={nowMinutes}
-                onSelect={flow.openEdit}
+                onSelect={setDetailsReserva}
               />
             )}
           </div>
@@ -189,7 +191,7 @@ export default function Agenda({ onOpenMobileMenu }) {
               <AgendaWeek
                 dates={dates}
                 reservasByDate={weekData}
-                onSelect={flow.openEdit}
+                onSelect={setDetailsReserva}
                 onCreateDay={handleCreateOnDate}
               />
             )}
@@ -204,6 +206,11 @@ export default function Agenda({ onOpenMobileMenu }) {
         submitting={flow.submitting}
         onClose={flow.closeForm}
         onSubmit={flow.submitForm}
+      />
+      <ManagedReservationDetails
+        reserva={detailsReserva}
+        onClose={() => setDetailsReserva(null)}
+        flow={flow}
       />
       <ConflictModal
         conflict={flow.conflict}

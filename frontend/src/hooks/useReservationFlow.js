@@ -49,7 +49,6 @@ export function useReservationFlow({
     setChangingStatus
   ] = useState(false);
 
-
   const openCreate = useCallback(
     (prefill = null) => {
       setFormState({
@@ -60,7 +59,6 @@ export function useReservationFlow({
     },
     []
   );
-
 
   const openEdit = useCallback(
     (reserva) => {
@@ -73,7 +71,6 @@ export function useReservationFlow({
     []
   );
 
-
   const closeForm = useCallback(() => {
     if (submitting) return;
 
@@ -83,13 +80,11 @@ export function useReservationFlow({
     }));
   }, [submitting]);
 
-
   const closeConflict =
     useCallback(
       () => setConflict(null),
       []
     );
-
 
   const openCancelConfirm =
     useCallback(
@@ -98,18 +93,12 @@ export function useReservationFlow({
       []
     );
 
-
   const closeCancelConfirm =
     useCallback(() => {
       if (cancelling) return;
 
       setCancelTarget(null);
     }, [cancelling]);
-
-
-  // ====================================================
-  // CRIAR / EDITAR
-  // ====================================================
 
   const submitForm = useCallback(
     async (payload) => {
@@ -181,7 +170,12 @@ export function useReservationFlow({
             tipo: err.codigo,
             mensagem: err.message,
             reservas: err.reservas,
-            payload
+            payload,
+            // Na edição, a prioridade deve atualizar a reserva original
+            reservaId:
+              formState.mode === "edit"
+                ? formState.reserva?.id ?? null
+                : null
           });
 
           return {
@@ -212,11 +206,6 @@ export function useReservationFlow({
     ]
   );
 
-
-  // ====================================================
-  // PRIORIDADE GREEN
-  // ====================================================
-
   const usePriority =
     useCallback(async () => {
       if (!conflict?.payload) return;
@@ -229,9 +218,10 @@ export function useReservationFlow({
           ...prioridadePayload
         } = conflict.payload;
 
-        await reservasApi.aplicarPrioridade(
-          prioridadePayload
-        );
+        await reservasApi.aplicarPrioridade({
+          ...prioridadePayload,
+          id: conflict.reservaId ?? undefined
+        });
 
         toast.success(
           "Prioridade aplicada. Reserva confirmada para a Green."
@@ -255,11 +245,6 @@ export function useReservationFlow({
       onChanged,
       toast
     ]);
-
-
-  // ====================================================
-  // CANCELAMENTO
-  // ====================================================
 
   const confirmCancel =
     useCallback(async () => {
@@ -294,11 +279,6 @@ export function useReservationFlow({
       onChanged,
       toast
     ]);
-
-
-  // ====================================================
-  // STAND BY
-  // ====================================================
 
   const pauseReservation =
     useCallback(
@@ -341,11 +321,6 @@ export function useReservationFlow({
       ]
     );
 
-
-  // ====================================================
-  // RETOMAR
-  // ====================================================
-
   const resumeReservation =
     useCallback(
       async (reserva) => {
@@ -384,6 +359,83 @@ export function useReservationFlow({
       ]
     );
 
+  const endReservation =
+    useCallback(
+      async (reserva) => {
+        if (!reserva) return false;
+
+        setChangingStatus(true);
+
+        try {
+          const resposta =
+            await reservasApi.encerrar(
+              reserva.id
+            );
+
+          toast.success(
+            `Reunião encerrada às ${resposta.hora_fim}. O restante do horário está livre.`
+          );
+
+          onChanged?.();
+
+          return true;
+        } catch (err) {
+          const mensagem =
+            err instanceof ApiError
+              ? err.message
+              : "Não foi possível encerrar a reunião.";
+
+          toast.error(mensagem);
+
+          return false;
+        } finally {
+          setChangingStatus(false);
+        }
+      },
+      [
+        onChanged,
+        toast
+      ]
+    );
+
+  const extendReservation =
+    useCallback(
+      async (reserva, horaFim) => {
+        if (!reserva || !horaFim) return false;
+
+        setChangingStatus(true);
+
+        try {
+          await reservasApi.estender(
+            reserva.id,
+            horaFim
+          );
+
+          toast.success(
+            `Reunião estendida até ${horaFim}.`
+          );
+
+          onChanged?.();
+
+          return true;
+        } catch (err) {
+          const mensagem =
+            err instanceof ApiError
+              ? err.message
+              : "Não foi possível estender a reunião.";
+
+          toast.error(mensagem);
+
+          return false;
+        } finally {
+          setChangingStatus(false);
+        }
+      },
+      [
+        onChanged,
+        toast
+      ]
+    );
 
   return {
     formState,
@@ -407,6 +459,8 @@ export function useReservationFlow({
 
     pauseReservation,
     resumeReservation,
+    endReservation,
+    extendReservation,
     changingStatus
   };
 }

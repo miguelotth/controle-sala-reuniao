@@ -1,13 +1,6 @@
 import "./Logo.css";
 
-/**
- * Wordmark da Green Paperless, recriado a partir do manual de marca:
- * "green" em minúsculas, com um pingo/quadrado verde arredondado no lugar
- * do acento do "n", e "PAPERLESS" em versalete espaçado abaixo.
- *
- * `variant="reduced"` exibe apenas o símbolo "g'" (versão reduzida do manual),
- * usado na sidebar recolhida e em espaços pequenos.
- */
+/** Logo da marca. `variant="reduced"` mostra só o "g" (sidebar recolhida). */
 export default function Logo({ variant = "full", tone = "auto", className = "" }) {
   if (variant === "reduced") {
     return (

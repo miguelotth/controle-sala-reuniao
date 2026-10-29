@@ -7,6 +7,7 @@ import ReservationModal from "../../components/ReservationModal/ReservationModal
 import ConflictModal from "../../components/ConflictModal/ConflictModal";
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal";
 import ReservationDetailsModal from "../../components/ReservationDetailsModal/ReservationDetailsModal";
+import AjusteHorario from "../../components/AjusteHorario/AjusteHorario";
 import { useReservas } from "../../hooks/useReservas";
 import { useReservationFlow } from "../../hooks/useReservationFlow";
 import { useIsMobile } from "../../hooks/useMediaQuery";
@@ -52,7 +53,8 @@ export default function Reservas({ onOpenMobileMenu }) {
     return ativas.filter(
       (r) =>
         r.responsavel?.toLowerCase().includes(term) ||
-        r.setor?.toLowerCase().includes(term)
+        r.setor?.toLowerCase().includes(term) ||
+        r.marcado_por?.toLowerCase().includes(term)
     );
   }, [reservas, search, now]);
 
@@ -71,6 +73,24 @@ export default function Reservas({ onOpenMobileMenu }) {
       if (sucesso) {
           setDetailsReserva(null);
       }
+  }
+
+  async function handleEnd(reserva) {
+      const sucesso = await flow.endReservation(reserva);
+
+      if (sucesso) {
+          setDetailsReserva(null);
+      }
+  }
+
+  async function handleExtend(reserva, horaFim) {
+      const sucesso = await flow.extendReservation(reserva, horaFim);
+
+      if (sucesso) {
+          setDetailsReserva(null);
+      }
+
+      return sucesso;
   }
 
   async function handleResume(reserva) {
@@ -94,7 +114,7 @@ export default function Reservas({ onOpenMobileMenu }) {
           <Search size={15} />
           <input
             type="text"
-            placeholder="Buscar por responsável ou setor"
+            placeholder="Buscar por responsável, setor ou quem marcou"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -153,7 +173,9 @@ export default function Reservas({ onOpenMobileMenu }) {
               <p className="gp-reservas-card-title">{r.motivo || r.responsavel}</p>
               <p className="gp-reservas-card-meta">
                 {r.responsavel} · {r.setor}
+                {r.marcado_por && ` · marcado por ${r.marcado_por}`}
               </p>
+              <AjusteHorario reserva={r} />
               <div className="gp-reservas-card-bottom">
                 <EmpresaBadge empresa={r.empresa} size="sm" />
                 <div className="gp-reservas-card-actions">
@@ -188,6 +210,7 @@ export default function Reservas({ onOpenMobileMenu }) {
                 <th>Horário</th>
                 <th>Responsável</th>
                 <th>Setor</th>
+                <th>Marcado por</th>
                 <th>Empresa</th>
                 <th>Motivo</th>
                 <th>Status</th>
@@ -199,10 +222,14 @@ export default function Reservas({ onOpenMobileMenu }) {
                 <tr key={r.id}>
                   <td>{formatDateBR(r.data)}</td>
                   <td>
-                    {formatTime(r.hora_inicio)}–{formatTime(r.hora_fim)}
+                    <div className="gp-table-horario">
+                      {formatTime(r.hora_inicio)}–{formatTime(r.hora_fim)}
+                      <AjusteHorario reserva={r} mostrarPrevisto={false} />
+                    </div>
                   </td>
                   <td>{r.responsavel}</td>
                   <td>{r.setor}</td>
+                  <td>{r.marcado_por || "—"}</td>
                   <td>
                     <EmpresaBadge empresa={r.empresa} size="sm" />
                   </td>
@@ -245,6 +272,8 @@ export default function Reservas({ onOpenMobileMenu }) {
             onCancel={handleCancel}
             onPause={handlePause}
             onResume={handleResume}
+            onEnd={handleEnd}
+            onExtend={handleExtend}
             changingStatus={flow.changingStatus}
         />
 

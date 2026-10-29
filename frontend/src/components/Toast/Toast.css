@@ -62,13 +62,13 @@
 /* AVISO IMPORTANTE */
 
 .gp-toast-warning {
-  background: rgba(245, 166, 35, 0.14);
+  background: #3ee98d;
 
-  border-color: rgba(245, 166, 35, 0.42);
+  border-color: #39d87d;
 }
 
 .gp-toast-warning .gp-toast-icon {
-  color: #e69a15;
+  color: #ffff;
 }
 
 .gp-toast-warning .gp-toast-message {

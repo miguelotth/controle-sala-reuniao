@@ -92,6 +92,12 @@ export function weekDates(isoDate) {
   });
 }
 
+/** Último dia do mês que contém `isoDate` ("2026-02-10" -> "2026-02-28") */
+export function endOfMonth(isoDate) {
+  const d = fromISODate(isoDate);
+  return toISODate(new Date(d.getFullYear(), d.getMonth() + 1, 0));
+}
+
 export function addDays(isoDate, days) {
   const d = fromISODate(isoDate);
   d.setDate(d.getDate() + days);
@@ -106,7 +112,6 @@ export function isTodayISO(isoDate) {
   return isoDate === todayISO();
 }
 
-/** Retorna true quando o horário final da reserva já passou no horário local do navegador. */
 export function isReservationPast(data, horaFim, now = new Date()) {
   if (!data || !horaFim) return false;
 
@@ -119,3 +124,31 @@ export function isReservationPast(data, horaFim, now = new Date()) {
   return timeToMinutes(horaFim) <= agoraEmMinutos;
 }
 
+
+/** 462 -> "7h 42min", 45 -> "45min", 120 -> "2h" (em vez de horas decimais como "7.7h") */
+export function formatDuracao(minutos) {
+  const horas = Math.floor(minutos / 60);
+  const resto = minutos % 60;
+
+  if (horas === 0) return `${resto}min`;
+  if (resto === 0) return `${horas}h`;
+  return `${horas}h ${resto}min`;
+}
+
+/**
+ * Reunião estendida ou encerrada antes: o backend guarda o fim original
+ * em hora_fim_prevista. Retorna null quando o horário não mudou.
+ */
+export function ajusteDeHorario(reserva) {
+  if (!reserva?.hora_fim_prevista) return null;
+
+  const previsto = timeToMinutes(reserva.hora_fim_prevista);
+  const real = timeToMinutes(reserva.hora_fim);
+  if (real === previsto) return null;
+
+  return {
+    tipo: real > previsto ? "estendida" : "encerrada",
+    minutos: Math.abs(real - previsto),
+    previsto: formatTime(reserva.hora_fim_prevista),
+  };
+}

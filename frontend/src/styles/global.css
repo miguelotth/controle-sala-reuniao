@@ -168,7 +168,7 @@ textarea:focus {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--gp-radius-md);
-  box-shadow: var(--gp-shadow-sm);
+  box-shadow: var(--card-shadow);
 }
 
 .gp-visually-hidden {

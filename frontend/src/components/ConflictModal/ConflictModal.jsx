@@ -23,7 +23,7 @@ export default function ConflictModal({ conflict, onClose, onUsePriority, loadin
         <p className="gp-conflict-desc">
           {isPriority
             ? "Existe uma reserva externa neste horário. A Green possui prioridade sobre reservas da MV ou externas."
-            : "Já existe uma reserva da sala nesse período."}
+            : conflict.mensagem || "Já existe uma reserva da sala nesse período."}
         </p>
 
         {conflitante && (

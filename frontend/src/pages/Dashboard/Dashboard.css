@@ -299,3 +299,33 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =====================================================
+   DASHBOARD — PRÓXIMAS RESERVAS (HOJE / SEMANA / MÊS)
+===================================================== */
+
+.gp-dashboard-list-title {
+  margin-bottom: 0;
+}
+
+.gp-dashboard-days {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.gp-dashboard-day-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.gp-dashboard-day-title span {
+  font-family: var(--gp-font-body);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
