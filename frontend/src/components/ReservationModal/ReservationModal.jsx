@@ -13,6 +13,7 @@ const EMPTY_FORM = {
   hora_fim: "",
   responsavel: "",
   setor: "",
+  marcado_por: "",
   empresa: "GREEN",
   motivo: "",
 };
@@ -41,6 +42,7 @@ function toFormState(reserva) {
     hora_fim: (reserva.hora_fim || "").slice(0, 5),
     responsavel: reserva.responsavel || "",
     setor: reserva.setor || "",
+    marcado_por: reserva.marcado_por || base.marcado_por,
     empresa: reserva.empresa || "GREEN",
     motivo: reserva.motivo || "",
   };
@@ -54,7 +56,7 @@ export default function ReservationModal({ open, mode = "create", reserva, onClo
 
   useEffect(() => {
     if (open) {
-      setForm(toFormState(reserva));
+      setForm(toFormState(reserva, mode));
       setErrors({});
       setFormError("");
     }
@@ -145,9 +147,12 @@ export default function ReservationModal({ open, mode = "create", reserva, onClo
       hora_fim: form.hora_fim,
       responsavel: form.responsavel.trim(),
       setor: form.setor.trim(),
+      marcado_por: form.marcado_por.trim(),
       empresa: form.empresa,
       motivo: form.motivo.trim() || undefined,
     };
+
+    salvarUltimoColaborador(payload.marcado_por);
 
     const result = await onSubmit(payload);
     if (result && !result.ok && !result.handled) {
