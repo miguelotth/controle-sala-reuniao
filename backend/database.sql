@@ -18,6 +18,10 @@ CREATE TABLE IF NOT EXISTS reservas (
     -- Colaborador da GREEN que fez a marcação
     marcado_por VARCHAR(100) NULL,
 
+    -- Quem cancelou a reunião e quando
+    cancelado_por VARCHAR(100) NULL,
+    cancelado_em DATETIME NULL,
+
     empresa ENUM(
         'GREEN',
         'MV',

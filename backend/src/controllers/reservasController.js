@@ -36,7 +36,12 @@ const dataValida = (data) => {
 // "14:00:00" ou "14:00" -> "14:00"
 const hhmm = (hora) => String(hora).slice(0, 5);
 
-const lerDadosReserva = (body = {}) => ({
+/*
+    "marcado_por" é sempre o usuário logado (vem do token),
+    nunca o que o frontend mandar no corpo. Na edição ele
+    não muda: continua sendo quem marcou a reunião.
+*/
+const lerDadosReserva = (body = {}, usuario) => ({
     data: body.data,
     hora_inicio:
         typeof body.hora_inicio === "string"
@@ -54,10 +59,7 @@ const lerDadosReserva = (body = {}) => ({
         typeof body.setor === "string"
             ? body.setor.trim()
             : body.setor,
-    marcado_por:
-        typeof body.marcado_por === "string"
-            ? body.marcado_por.trim()
-            : body.marcado_por,
+    marcado_por: usuario?.nome,
     empresa: body.empresa,
     motivo:
         typeof body.motivo === "string" && body.motivo.trim()
@@ -85,9 +87,9 @@ const validarDadosReserva = ({
         return "Preencha todos os campos obrigatórios";
     }
 
-    // Só colaboradores da GREEN marcam reuniões
+    // Garantido pelo middleware de autenticação
     if (!marcado_por) {
-        return "Informe o colaborador da GREEN que está marcando a reunião";
+        return "Não foi possível identificar o usuário logado";
     }
 
     if (!dataValida(data)) {
@@ -355,7 +357,7 @@ const buscarReservaPorId = async (req, res) => {
 };
 
 const criarReserva = async (req, res) => {
-    const dados = lerDadosReserva(req.body);
+    const dados = lerDadosReserva(req.body, req.usuario);
 
     const erroValidacao = validarDadosReserva(dados);
 
@@ -429,10 +431,13 @@ const criarReserva = async (req, res) => {
 const aplicarPrioridade = async (req, res) => {
     const id = req.body?.id ?? null;
 
-    const dados = lerDadosReserva({
-        ...req.body,
-        empresa: "GREEN"
-    });
+    const dados = lerDadosReserva(
+        {
+            ...req.body,
+            empresa: "GREEN"
+        },
+        req.usuario
+    );
 
     const erroValidacao = validarDadosReserva(dados);
 
@@ -497,9 +502,7 @@ const aplicarPrioridade = async (req, res) => {
             dados.hora_inicio,
             dados.hora_fim,
             dados.responsavel,
-            dados.setor,
-            dados.marcado_por,
-            dados.motivo
+            dados.setor
         ];
 
         if (id !== null) {
@@ -512,14 +515,13 @@ const aplicarPrioridade = async (req, res) => {
                         hora_fim = ?,
                         responsavel = ?,
                         setor = ?,
-                        marcado_por = ?,
                         empresa = 'GREEN',
                         motivo = ?,
                         status = 'AGENDADA',
                         hora_fim_prevista = NULL
                     WHERE id = ?
                 `,
-                [...valores, id]
+                [...valores, dados.motivo, id]
             );
 
             return { id, idsExternos, criada: false };
@@ -541,7 +543,7 @@ const aplicarPrioridade = async (req, res) => {
                 )
                 VALUES (?, ?, ?, ?, ?, ?, 'GREEN', ?, 'AGENDADA')
             `,
-            valores
+            [...valores, dados.marcado_por, dados.motivo]
         );
 
         return { id: result.insertId, idsExternos, criada: true };
@@ -557,7 +559,7 @@ const aplicarPrioridade = async (req, res) => {
 const editarReserva = async (req, res) => {
     const { id } = req.params;
 
-    const dados = lerDadosReserva(req.body);
+    const dados = lerDadosReserva(req.body, req.usuario);
 
     const erroValidacao = validarDadosReserva(dados);
 
@@ -598,7 +600,6 @@ const editarReserva = async (req, res) => {
                     hora_fim = ?,
                     responsavel = ?,
                     setor = ?,
-                    marcado_por = ?,
                     empresa = ?,
                     motivo = ?,
                     hora_fim_prevista = NULL
@@ -610,7 +611,6 @@ const editarReserva = async (req, res) => {
                 dados.hora_fim,
                 dados.responsavel,
                 dados.setor,
-                dados.marcado_por,
                 dados.empresa,
                 dados.motivo,
                 id
@@ -859,11 +859,16 @@ const cancelarReserva = async (req, res) => {
     /*
         Só reservas ativas (AGENDADA ou STAND_BY) que ainda
         não terminaram podem ser canceladas.
+
+        Fica registrado quem cancelou (usuário logado) e quando.
     */
     const [result] = await db.query(
         `
             UPDATE reservas
-            SET status = 'CANCELADA'
+            SET
+                status = 'CANCELADA',
+                cancelado_por = ?,
+                cancelado_em = NOW()
             WHERE id = ?
             AND status IN ('AGENDADA', 'STAND_BY')
             AND (
@@ -871,7 +876,7 @@ const cancelarReserva = async (req, res) => {
                 OR (data = CURDATE() AND hora_fim > CURTIME())
             )
         `,
-        [id]
+        [req.usuario?.nome, id]
     );
 
     if (result.affectedRows === 0) {

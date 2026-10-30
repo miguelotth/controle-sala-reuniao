@@ -147,3 +147,9 @@
   background: var(--gp-status-conflito-bg);
   color: var(--gp-status-conflito);
 }
+
+.gp-field input[readonly] {
+  background: var(--bg-surface-alt);
+  color: var(--text-secondary);
+  cursor: default;
+}

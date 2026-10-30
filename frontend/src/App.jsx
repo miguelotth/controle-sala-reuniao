@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar/Sidebar";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ToastProvider } from "./context/ToastContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import PreviewBanner from "./components/PreviewBanner/PreviewBanner";
+import Login from "./pages/Login/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Agenda from "./pages/Agenda/Agenda";
 import Reservas from "./pages/Reservas/Reservas";
@@ -41,14 +44,32 @@ function Shell() {
   );
 }
 
-export default function App() {
+// O app inteiro exige login
+function AuthGate() {
+  const { usuario, modoPrevia } = useAuth();
+
   return (
-    <ThemeProvider>
-      <ToastProvider>
+    <>
+      {usuario ? (
         <BrowserRouter>
           <Shell />
         </BrowserRouter>
-      </ToastProvider>
+      ) : (
+        <Login />
+      )}
+      {modoPrevia && <PreviewBanner />}
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <AuthGate />
+        </ToastProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

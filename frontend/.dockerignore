@@ -1,0 +1,7 @@
+node_modules
+dist
+npm-debug.log*
+
+# As variáveis do build vêm do docker-compose
+.env
+.env.*

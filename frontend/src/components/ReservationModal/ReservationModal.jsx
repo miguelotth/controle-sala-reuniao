@@ -4,6 +4,7 @@ import Modal from "../Modal";
 import { toISODate, timeToMinutes } from "../../utils/date";
 import { avaliarHorario, descreverConflito } from "../../utils/disponibilidade";
 import { reservasApi } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 import "./ReservationModal.css";
 
 const EMPTY_FORM = {
@@ -26,36 +27,14 @@ const DURACOES = [
   { minutos: 90, label: "1h30" },
 ];
 
-// Lembra o último colaborador que marcou neste navegador
-const ULTIMO_COLABORADOR_KEY = "gp-ultimo-marcado-por";
-
-function lerUltimoColaborador() {
-  try {
-    return localStorage.getItem(ULTIMO_COLABORADOR_KEY) || "";
-  } catch {
-    return "";
-  }
-}
-
-function salvarUltimoColaborador(nome) {
-  try {
-    localStorage.setItem(ULTIMO_COLABORADOR_KEY, nome);
-  } catch {
-    // Sem localStorage o formulário funciona normalmente
-  }
-}
-
 function minutesToTime(minutes) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-function toFormState(reserva, mode) {
-  const base = {
-    ...EMPTY_FORM,
-    marcado_por: mode === "create" ? lerUltimoColaborador() : "",
-  };
+function toFormState(reserva) {
+  const base = EMPTY_FORM;
   if (!reserva) return base;
   return {
     data: reserva.data || base.data,
@@ -70,7 +49,8 @@ function toFormState(reserva, mode) {
 }
 
 export default function ReservationModal({ open, mode = "create", reserva, onClose, onSubmit, submitting }) {
-  const [form, setForm] = useState(() => toFormState(reserva, mode));
+  const { usuario } = useAuth();
+  const [form, setForm] = useState(() => toFormState(reserva));
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
 
@@ -108,7 +88,7 @@ export default function ReservationModal({ open, mode = "create", reserva, onClo
     return () => clearInterval(id);
   }, [open]);
 
-  const original = useMemo(() => toFormState(reserva, mode), [reserva, mode]);
+  const original = useMemo(() => toFormState(reserva), [reserva]);
 
   const situacao = useMemo(
     () =>
@@ -149,7 +129,6 @@ export default function ReservationModal({ open, mode = "create", reserva, onClo
       next.hora_fim = "O horário final deve ser maior que o inicial.";
     }
     if (!form.responsavel.trim()) next.responsavel = "Informe para quem é a reunião.";
-    if (!form.marcado_por.trim()) next.marcado_por = "Informe quem está marcando.";
     if (!form.setor.trim()) next.setor = "Informe o setor.";
     if (!form.empresa) next.empresa = "Selecione a empresa.";
     setErrors(next);
@@ -296,13 +275,9 @@ export default function ReservationModal({ open, mode = "create", reserva, onClo
 
           <label className="gp-field gp-field-full">
             <span>Marcado por (colaborador Green)</span>
-            <input
-              type="text"
-              placeholder="Quem está marcando a reunião"
-              value={form.marcado_por}
-              onChange={(e) => setField("marcado_por", e.target.value)}
-            />
-            {errors.marcado_por && <em>{errors.marcado_por}</em>}
+            {/* O backend grava sempre o usuário logado */}
+            <input type="text" value={usuario?.nome || ""} readOnly aria-readonly="true" />
+            <em className="gp-field-optional">Preenchido com o usuário logado.</em>
           </label>
 
           <label className="gp-field">

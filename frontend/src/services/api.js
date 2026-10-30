@@ -1,3 +1,5 @@
+import { obterToken } from "../auth/sessao";
+
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -12,12 +14,20 @@ export class ApiError extends Error {
 
 async function request(path, options = {}) {
   let response;
+  let token;
+
+  try {
+    token = await obterToken();
+  } catch {
+    throw new ApiError("NAO_AUTENTICADO", "Sua sessão expirou. Faça login novamente.");
+  }
+
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers.Authorization = `Bearer ${token}`;
 
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       ...options,
     });
   } catch {

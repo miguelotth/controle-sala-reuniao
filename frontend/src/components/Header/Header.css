@@ -38,6 +38,33 @@
   margin-top: 2px;
 }
 
+.gp-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.gp-header-user {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.gp-header-user-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 200px;
+  padding-left: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .gp-header-actions {
   display: flex;
   align-items: center;

@@ -1,0 +1,159 @@
+.gp-login {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+/* Mesmo plano de fundo do app (brilho verde + folhas), ver App.css */
+.gp-login::before,
+.gp-login::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.gp-login::before {
+  background:
+    radial-gradient(60% 50% at 100% 0%, var(--bg-glow-a), transparent 70%),
+    radial-gradient(50% 45% at 0% 100%, var(--bg-glow-b), transparent 70%);
+}
+
+.gp-login::after {
+  background: var(--bg-leaf);
+  -webkit-mask:
+    url("../../assets/folhas/ramo-grande.svg") right -20px top -20px / 460px auto no-repeat,
+    url("../../assets/folhas/broto.svg") left 0 bottom 0 / 240px auto no-repeat;
+  mask:
+    url("../../assets/folhas/ramo-grande.svg") right -20px top -20px / 460px auto no-repeat,
+    url("../../assets/folhas/broto.svg") left 0 bottom 0 / 240px auto no-repeat;
+}
+
+.gp-login-theme {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+}
+
+.gp-login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 36px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  border-radius: var(--gp-radius-signature);
+}
+
+.gp-login-logo .gp-logo-word {
+  font-size: 2rem;
+}
+
+.gp-login-logo .gp-logo-sub {
+  font-size: 0.7rem;
+}
+
+.gp-login-text h1 {
+  font-size: 1.4rem;
+}
+
+.gp-login-text p {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.gp-login-btn {
+  width: 100%;
+  padding: 13px 18px;
+}
+
+.gp-login-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--gp-radius-sm);
+  background: var(--gp-status-conflito-bg);
+  color: var(--gp-status-conflito);
+  font-size: 0.85rem;
+}
+
+.gp-login-alert svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.gp-login-users {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gp-login-users-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.gp-login-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--bg-surface-alt);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--gp-radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color var(--gp-transition), background var(--gp-transition);
+}
+
+.gp-login-user:hover {
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.gp-login-user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--gp-radius-pill);
+  background: var(--gp-empresa-green-bg);
+  color: var(--accent-strong);
+  flex-shrink: 0;
+}
+
+.gp-login-user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.gp-login-user-info strong {
+  font-size: 0.9rem;
+}
+
+.gp-login-user-info small {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.gp-login-back {
+  align-self: flex-start;
+}
+
+.gp-login-footnote {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+}

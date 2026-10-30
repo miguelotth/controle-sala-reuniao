@@ -54,3 +54,12 @@ Thumbs.db
 
 # Backup antigo do backend (continha um .env com senha)
 backend.zip
+
+# Configuração do servidor (só os modelos .example vão para o repositório)
+.env.*
+!.env.example
+!.env.producao.example
+
+# Certificado HTTPS e backups do banco ficam só no servidor
+certs/
+backups/

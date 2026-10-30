@@ -1,0 +1,118 @@
+# Servidor da empresa:
+#   docker compose -f docker-compose.prod.yml up -d --build
+# Os valores vêm do .env da raiz (copie de .env.producao.example).
+# Diferenças do docker-compose.yml de teste:
+#   - o site abre em HTTPS (portas 443 e 80, que só redireciona)
+#   - a API fica em https://<servidor>/api; banco e API não ficam expostos na rede
+#   - o backend usa um usuário próprio do MySQL, não o root
+#   - backup automático do banco na pasta backups/
+
+name: sala-reuniao
+
+services:
+  db:
+    image: mysql:8.4
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Preencha DB_ROOT_PASSWORD no .env}
+      MYSQL_DATABASE: controle_sala_reuniao
+      # Usuário do sistema, com acesso só a este banco
+      MYSQL_USER: sala
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Preencha DB_PASSWORD no .env}
+      # CURDATE()/NOW() precisam do horário de Brasília
+      TZ: America/Sao_Paulo
+    volumes:
+      # Os dados ficam neste volume e sobrevivem a "docker compose down"
+      - dados_mysql:/var/lib/mysql
+      # Cria a tabela só na primeira vez, com o volume vazio
+      - ./backend/database.sql:/docker-entrypoint-initdb.d/01_database.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    logging: &logs
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  backend:
+    build: ./backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      DB_HOST: db
+      DB_USER: sala
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: controle_sala_reuniao
+      DB_PORT: 3306
+      ENTRA_TENANT_ID: ${ENTRA_TENANT_ID:-}
+      ENTRA_CLIENT_ID: ${ENTRA_CLIENT_ID:-}
+      PERMITIR_MODO_PREVIA: ${PERMITIR_MODO_PREVIA:-nao}
+      CORS_ORIGIN: https://${SERVIDOR_ENDERECO:?Preencha SERVIDOR_ENDERECO no .env}
+      TZ: America/Sao_Paulo
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/saude || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    logging: *logs
+
+  # Cria um certificado HTTPS provisório se a pasta certs/ estiver vazia
+  certificado:
+    image: mysql:8.4
+    restart: "no"
+    entrypoint: ["sh", "/scripts/certificado-provisorio.sh"]
+    environment:
+      SERVIDOR_ENDERECO: ${SERVIDOR_ENDERECO}
+    volumes:
+      - ./scripts/certificado-provisorio.sh:/scripts/certificado-provisorio.sh:ro
+      - ./certs:/certs
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NGINX_CONF: nginx.prod.conf
+        VITE_API_URL: /api
+        VITE_ENTRA_TENANT_ID: ${ENTRA_TENANT_ID:-}
+        VITE_ENTRA_CLIENT_ID: ${ENTRA_CLIENT_ID:-}
+    restart: always
+    environment:
+      TZ: America/Sao_Paulo
+    volumes:
+      # Certificado HTTPS: certificado.crt e certificado.key (veja o README)
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      certificado:
+        condition: service_completed_successfully
+      backend:
+        condition: service_started
+    ports:
+      - "${PORTA_HTTP:-80}:80"
+      - "${PORTA_HTTPS:-443}:443"
+    logging: *logs
+
+  backup:
+    image: mysql:8.4
+    restart: always
+    entrypoint: ["bash", "/scripts/backup.sh"]
+    environment:
+      MYSQL_PWD: ${DB_ROOT_PASSWORD}
+      BACKUP_HORA: ${BACKUP_HORA:-02:00}
+      BACKUP_DIAS: ${BACKUP_DIAS:-30}
+      TZ: America/Sao_Paulo
+    volumes:
+      - ./scripts/backup.sh:/scripts/backup.sh:ro
+      - ./backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logs
+
+volumes:
+  dados_mysql:

@@ -25,6 +25,7 @@ import {
 
 import {
   formatDateBR,
+  formatDateTimeBR,
   formatTime,
   isReservationPast,
   isTodayISO,
@@ -245,6 +246,18 @@ export default function ReservationDetailsModal({
 
               <span>
                 Marcado por {reserva.marcado_por}
+              </span>
+            </div>
+          )}
+
+
+          {reserva.cancelado_por && (
+            <div className="gp-details-row">
+              <Ban size={16} />
+
+              <span>
+                Cancelada por {reserva.cancelado_por}
+                {reserva.cancelado_em && ` em ${formatDateTimeBR(reserva.cancelado_em)}`}
               </span>
             </div>
           )}

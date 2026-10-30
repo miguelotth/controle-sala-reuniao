@@ -110,3 +110,9 @@
   gap: 4px;
   font-variant-numeric: tabular-nums;
 }
+
+.gp-table-cancelado {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}

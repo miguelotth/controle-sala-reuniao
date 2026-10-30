@@ -1,0 +1,6 @@
+node_modules
+npm-debug.log*
+
+# O .env tem prioridade sobre as variáveis do docker-compose,
+# então ele nunca pode entrar na imagem
+.env

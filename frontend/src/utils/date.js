@@ -10,6 +10,13 @@ export function formatDateBR(isoDate) {
   return `${d}/${m}/${y}`;
 }
 
+/** "2026-10-29 14:20:00" -> "29/10/2026 às 14:20" */
+export function formatDateTimeBR(dateTime) {
+  if (!dateTime) return "";
+  const [data, hora = ""] = dateTime.split(/[ T]/);
+  return hora ? `${formatDateBR(data)} às ${hora.slice(0, 5)}` : formatDateBR(data);
+}
+
 /** "14:00:00" ou "14:00" -> "14:00" */
 export function formatTime(time) {
   if (!time) return "";

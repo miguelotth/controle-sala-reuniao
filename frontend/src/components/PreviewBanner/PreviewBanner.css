@@ -1,0 +1,20 @@
+.gp-preview-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--gp-radius-pill);
+  background: var(--gp-status-standby-bg);
+  border: 1px solid rgba(245, 166, 35, 0.35);
+  color: var(--gp-status-standby);
+  font-size: 0.74rem;
+  font-weight: 600;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+}

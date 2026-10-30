@@ -7,7 +7,7 @@ import ReservationDetailsModal from "../../components/ReservationDetailsModal/Re
 import { useReservas } from "../../hooks/useReservas";
 import { useIsMobile } from "../../hooks/useMediaQuery";
 import AjusteHorario from "../../components/AjusteHorario/AjusteHorario";
-import { formatDateBR, formatTime, isReservationPast, ajusteDeHorario } from "../../utils/date";
+import { formatDateBR, formatDateTimeBR, formatTime, isReservationPast, ajusteDeHorario } from "../../utils/date";
 import { STATUS } from "../../utils/status";
 import "../Reservas/Reservas.css";
 
@@ -108,6 +108,7 @@ export default function Historico({ onOpenMobileMenu }) {
               <p className="gp-reservas-card-meta">
                 {r.responsavel} · {r.setor}
                 {r.marcado_por && ` · marcado por ${r.marcado_por}`}
+                {r.cancelado_por && ` · cancelado por ${r.cancelado_por}`}
               </p>
               <div className="gp-reservas-card-bottom">
                 <EmpresaBadge empresa={r.empresa} size="sm" />
@@ -149,7 +150,14 @@ export default function Historico({ onOpenMobileMenu }) {
                   </td>
                   <td className="gp-table-motivo">{r.motivo || "—"}</td>
                   <td>
-                    <StatusBadge status={r.status} size="sm" />
+                    <div className="gp-table-horario">
+                      <StatusBadge status={r.status} size="sm" />
+                      {r.cancelado_por && (
+                        <span className="gp-table-cancelado" title={formatDateTimeBR(r.cancelado_em)}>
+                          por {r.cancelado_por}
+                        </span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

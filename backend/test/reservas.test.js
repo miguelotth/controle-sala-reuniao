@@ -11,6 +11,13 @@ require("dotenv").config({ override: true });
 process.env.DB_NAME =
     process.env.DB_NAME_TEST || "controle_sala_reuniao_test";
 
+// Os testes usam sempre a autenticação em modo prévia
+process.env.ENTRA_TENANT_ID = "";
+process.env.ENTRA_CLIENT_ID = "";
+
+const USUARIO = "Ana Souza";
+const TOKEN = `Bearer previa:${encodeURIComponent(USUARIO)}`;
+
 const { test, before, after, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
 const mysql = require("mysql2/promise");
@@ -19,10 +26,16 @@ let db;
 let servidor;
 let base;
 
-const api = async (metodo, caminho, corpo) => {
+const api = async (metodo, caminho, corpo, token = TOKEN) => {
+    const headers = { "Content-Type": "application/json" };
+
+    if (token) {
+        headers.Authorization = token;
+    }
+
     const resposta = await fetch(base + caminho, {
         method: metodo,
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: corpo ? JSON.stringify(corpo) : undefined
     });
 
@@ -39,7 +52,6 @@ const reserva = (data, hora_inicio, hora_fim, empresa, extra = {}) => ({
     empresa,
     responsavel: "Teste",
     setor: "TI",
-    marcado_por: "Colaborador Green",
     ...extra
 });
 
@@ -163,21 +175,103 @@ test("valida formato de data e hora", async () => {
     assert.equal((await criar(FUTURO, "08:00", "25:00", "MV")).status, 400);
 });
 
-test("exige o colaborador da GREEN que marcou e o salva", async () => {
-    const semColaborador = await criar(FUTURO, "09:00", "10:00", "MV", {
-        marcado_por: "  "
-    });
+test("sem token ou com token inválido devolve 401 em JSON", async () => {
+    const semToken = await api("GET", "/reservas", undefined, null);
 
-    assert.equal(semColaborador.status, 400);
+    assert.equal(semToken.status, 401);
+    assert.ok(semToken.body.erro);
 
+    const tokenInvalido = await api("GET", "/reservas", undefined, "Bearer abc");
+
+    assert.equal(tokenInvalido.status, 401);
+    assert.ok(tokenInvalido.body.erro);
+
+    const semNome = await api("GET", "/reservas", undefined, "Bearer previa:");
+
+    assert.equal(semNome.status, 401);
+});
+
+test("marcado_por é o usuário logado, ignorando o corpo", async () => {
     const r = await criar(FUTURO, "09:00", "10:00", "MV", {
-        marcado_por: "Ana (Green)"
+        marcado_por: "Outra Pessoa"
     });
+
+    assert.equal(r.status, 201);
 
     const salva = (await api("GET", `/reservas/${r.body.id}`)).body;
 
-    assert.equal(salva.marcado_por, "Ana (Green)");
+    assert.equal(salva.marcado_por, USUARIO);
     assert.equal(salva.empresa, "MV");
+
+    const outroUsuario = `Bearer previa:${encodeURIComponent("Carlos Lima")}`;
+
+    const edicao = await api(
+        "PUT",
+        `/reservas/${r.body.id}`,
+        reserva(FUTURO, "09:00", "10:30", "MV", { marcado_por: "Outra Pessoa" }),
+        outroUsuario
+    );
+
+    assert.equal(edicao.status, 200);
+
+    // A edição não apaga quem marcou a reunião
+    assert.equal(
+        (await api("GET", `/reservas/${r.body.id}`)).body.marcado_por,
+        USUARIO
+    );
+});
+
+test("cancelamento registra quem cancelou e quando", async () => {
+    const r = await criar(FUTURO, "11:00", "12:00", "MV");
+
+    const antes = await api("GET", `/reservas/${r.body.id}`);
+
+    assert.equal(antes.body.cancelado_por, null);
+    assert.equal(antes.body.cancelado_em, null);
+
+    const outroUsuario = `Bearer previa:${encodeURIComponent("Carlos Lima")}`;
+
+    assert.equal(
+        (await api("PATCH", `/reservas/${r.body.id}/cancelar`, null, outroUsuario)).status,
+        200
+    );
+
+    const salva = (await api("GET", `/reservas/${r.body.id}`)).body;
+
+    assert.equal(salva.status, "CANCELADA");
+    assert.equal(salva.marcado_por, USUARIO);
+    assert.equal(salva.cancelado_por, "Carlos Lima");
+    assert.match(salva.cancelado_em, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
+
+    // Uma segunda tentativa recusada não troca quem cancelou
+    await api("PATCH", `/reservas/${r.body.id}/cancelar`);
+
+    assert.equal(
+        (await api("GET", `/reservas/${r.body.id}`)).body.cancelado_por,
+        "Carlos Lima"
+    );
+});
+
+test("prioridade aplicada na edição mantém quem marcou", async () => {
+    const mv = await criar(FUTURO, "14:00", "15:00", "MV");
+    const green = await criar(FUTURO, "15:00", "16:00", "GREEN");
+
+    const outroUsuario = `Bearer previa:${encodeURIComponent("Carlos Lima")}`;
+
+    const r = await api(
+        "POST",
+        "/reservas/prioridade",
+        { ...reserva(FUTURO, "14:00", "15:00"), id: green.body.id },
+        outroUsuario
+    );
+
+    assert.equal(r.status, 200);
+    assert.equal(await status(mv.body.id), "CONFLITO");
+
+    const salva = (await api("GET", `/reservas/${green.body.id}`)).body;
+
+    assert.equal(salva.marcado_por, USUARIO);
+    assert.equal(salva.hora_inicio.slice(0, 5), "14:00");
 });
 
 test("lista reservas de um período com as duas datas inclusivas", async () => {
@@ -206,7 +300,7 @@ test("lista reservas de um período com as duas datas inclusivas", async () => {
 test("JSON malformado devolve 400 em JSON", async () => {
     const resposta = await fetch(base + "/reservas", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: TOKEN },
         body: "{"
     });
 
